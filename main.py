@@ -27,11 +27,18 @@ money_button_img = pygame.image.load(os.path.join('Assets/images/money button.pn
 programming_job_button_img = pygame.image.load(os.path.join('Assets/images/programming job button.png'))
 robbery_job_button_img = pygame.image.load(os.path.join('Assets/images/robbery job button.png'))
 gambling_job_button_img = pygame.image.load(os.path.join('Assets/images/gamble job button.png'))
+black_button_img = pygame.image.load(os.path.join('Assets/images/black button.png'))
+red_button_img = pygame.image.load(os.path.join('Assets/images/red button.png'))
+green_button_img = pygame.image.load(os.path.join('Assets/images/green button.png'))
+roulette_img = pygame.image.load(os.path.join('Assets/images/roulette.png'))
 
 money_button = Button(200, 200, money_button_img)
 programming_job_button = Button(140, 180, programming_job_button_img)
 robbery_job_button = Button(180, 140, robbery_job_button_img)
 gambling_job_button = Button(240, 140, gambling_job_button_img)
+black_button = Button(325, 400, black_button_img)
+red_button = Button(425, 400, red_button_img)
+green_button = Button(525, 400, green_button_img)
 
 # variables
 money = 0
@@ -55,7 +62,10 @@ rob_chance = 11.5
 rob_amount_picked = False
 robbery_timer = Timer(3000)
 programming_timer = Timer(3000)
+gambling_timer = Timer(3000)
 gambling_chance_picked = False
+color_chosen = False
+gambling_success = False
 
 # money button + jobs
     
@@ -214,14 +224,54 @@ def gambling_job():
     global gambling_job_menu
     global menu_on
     global gambling_chance_picked
+    global gambling_timer
+    global choice
+    global color_chosen
+    global gambling_success
     
-    choice = random.randint(1, 101)
-    if choice == 101:
-        print("green")
-    elif choice >= 50 and choice <= 101:
-        pass
-    elif choice < 50:
-        pass
+    screen.fill((255, 255, 255))
+    
+    if gambling_chance_picked == False:
+        choice = random.randint(1, 101)
+        gambling_chance_picked = True
+    
+    if black_button.draw():
+        chosen_color = "black"
+        color_chosen = True
+    if red_button.draw():
+        chosen_color = "red"
+        color_chosen = True
+    if green_button.draw():
+        chosen_color = "green"
+        color_chosen = True
+
+    if color_chosen:
+        if chosen_color == "black":
+            if choice >= 50 and choice < 101:
+                gambling_success = True
+            else:
+                pass
+                # failed idiot
+                
+        if chosen_color == "red":
+            if choice < 50:
+                pass
+                # suces
+            else:
+                pass
+                # failed idiot
+                
+        if chosen_color == "green":
+            if choice == 101:
+                pass
+                # suces
+            else:
+                pass
+                # failed idiot
+                
+    
+        
+        
 
 clock = pygame.time.Clock()
 
