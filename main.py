@@ -3,12 +3,14 @@ import sys
 import os
 import random
 import string
-import time
 from button import Button
 from timer import Timer
 
 # screen
 pygame.init()
+pygame.mixer.music.load('Assets/audio/main theme.mp3')
+pygame.mixer.music.set_volume(0.01)
+pygame.mixer.music.play(-1)
 
 screen = pygame.display.set_mode((900, 500))
 pygame.display.set_caption('Nothing Can Go Wrong, Right?')
@@ -21,20 +23,24 @@ font = pygame.font.SysFont('Arial', 36)
 
 # images
 fail_img = pygame.image.load(os.path.join('Assets/images/fail.png'))
-money_button_img = pygame.image.load(os.path.join('Assets/images/money button placeholder.png'))
-programming_job_button_img = pygame.image.load(os.path.join('Assets/images/programming job button placeholder.png'))
-robbery_job_button_img = pygame.image.load(os.path.join('Assets/images/robbery job button placeholder.png'))
+money_button_img = pygame.image.load(os.path.join('Assets/images/money button.png'))
+programming_job_button_img = pygame.image.load(os.path.join('Assets/images/programming job button.png'))
+robbery_job_button_img = pygame.image.load(os.path.join('Assets/images/robbery job button.png'))
+gambling_job_button_img = pygame.image.load(os.path.join('Assets/images/gamble job button.png'))
 
 money_button = Button(200, 200, money_button_img)
 programming_job_button = Button(140, 180, programming_job_button_img)
 robbery_job_button = Button(180, 140, robbery_job_button_img)
+gambling_job_button = Button(240, 140, gambling_job_button_img)
 
 # variables
+money = 0
 menu_on = True
 money_button_menu = False
 selection = False
 programming_job_menu = False
 robbery_job_menu = False
+gambling_job_menu = False
 words_picked = False
 chosen_words = ''
 characters_word_1 = list()
@@ -47,6 +53,9 @@ letter = ' '
 rob_chance_picked = False
 rob_chance = 11.5
 rob_amount_picked = False
+robbery_timer = Timer(3000)
+programming_timer = Timer(3000)
+gambling_chance_picked = False
 
 # money button + jobs
     
@@ -56,6 +65,9 @@ def menu():
     global selection
     global programming_job_menu
     global robbery_job_menu
+    global gambling_job_menu
+    
+    money_count = font.render("Money: " + str(money), True, (0, 0, 0))
     
     if money_button.draw():
         money_button_menu = True
@@ -70,20 +82,29 @@ def menu():
             money_button_menu = False
             menu_on = False
             robbery_job_menu = True
+        if gambling_job_button.draw():
+            money_button_menu = False
+            menu_on = False
+            gambling_job_menu = True
+    
+    screen.blit(money_count, (20, 450))
             
 # programming job
 
 def programming_job():
+    global money
     global words_picked
     global chosen_words
     global characters_word_1, characters_word_2, characters_word_3
     global display_word_1, display_word_2, display_word_3
-    global last_letter
     global programming_job_menu
+    global programming_timer
     global menu_on
     
     list_of_words = ["print", "for", "if", "wrong", "variable", "blit", "def", "class", "struct", "while"]
     screen.fill((255, 255, 255))
+
+    
     if words_picked == False:
         chosen_words = random.sample(list_of_words, 3)
         characters_word_1 = list(chosen_words[0])
@@ -103,7 +124,6 @@ def programming_job():
         screen.blit(word_3_display, (50, 130))
     
     keys = pygame.key.get_pressed()
-    last_letter_text = font.render("Last letter: ", True, (0, 0, 0))
     
     for letter in string.ascii_lowercase:
         key = getattr(pygame, f'K_{letter}')
@@ -122,21 +142,30 @@ def programming_job():
                 characters_word_3.remove(letter)
                 if len(characters_word_3) == 0:
                     display_word_3 = False
-                    
-        last_letter = font.render(letter, True, (0, 0, 0))
-    screen.blit(last_letter_text, (50, 200))
-    screen.blit(last_letter, (200, 200))
     
     if (len(characters_word_1) == 0) and (len(characters_word_2) == 0) and (len(characters_word_3) == 0):
+        if not programming_timer.active:
+            programming_timer.activate()
         screen.fill((255, 255, 255))
-        programming_job_menu = False
-        words_picked = False
-        display_word_1 = True
-        display_word_2 = True
-        display_word_3 = True
-        menu_on = True
+        success_text = font.render("Success!", True, (0, 0, 0))
+        program_amount_text = font.render("Earned $" + str(5000), True, (0, 0, 0))
+        
+        screen.blit(success_text, (390, 150))
+        screen.blit(program_amount_text, (350, 200))
+        programming_timer.update()
+        
+        if not programming_timer.active:
+            screen.fill((255, 255, 255))
+            money += 5000
+            programming_job_menu = False
+            words_picked = False
+            display_word_1 = True
+            display_word_2 = True
+            display_word_3 = True
+            menu_on = True
         
 def robbery_job():
+    global money
     global rob_chance_picked
     global rob_chance
     global rob_amount_picked
@@ -145,8 +174,10 @@ def robbery_job():
     global robbery_timer
     global menu_on
     screen.fill((255, 255, 255))
-    robbery_timer = Timer(3000)
-    robbery_timer.activate()
+    
+    if not robbery_timer.active:
+        robbery_timer.activate()
+    
     if rob_chance_picked == False:
         rob_chance = random.randint(1, 25)
         rob_chance_picked = True
@@ -156,13 +187,14 @@ def robbery_job():
         if rob_chance >= 12:
             if rob_amount_picked == False:
                 rob_amount = random.randint(10, 50000)
+                money += rob_amount
                 rob_amount_picked = True
             
             if rob_amount_picked:
                 success_text = font.render("Success!", True, (0, 0, 0))
                 rob_amount_text = font.render("Earned $" + str(rob_amount), True, (0, 0, 0))
                 
-                screen.blit(success_text, (400, 150))
+                screen.blit(success_text, (390, 150))
                 screen.blit(rob_amount_text, (350, 200))
                 robbery_timer.update()
                 
@@ -178,6 +210,19 @@ def robbery_job():
         elif rob_chance <= 11:
             screen.blit(fail_img, (0, 0))
     
+def gambling_job():
+    global gambling_job_menu
+    global menu_on
+    global gambling_chance_picked
+    
+    choice = random.randint(1, 101)
+    if choice == 101:
+        print("green")
+    elif choice >= 50 and choice <= 101:
+        pass
+    elif choice < 50:
+        pass
+
 clock = pygame.time.Clock()
 
 while True:
@@ -195,6 +240,9 @@ while True:
     
     if robbery_job_menu:
         robbery_job()
+    
+    if gambling_job_menu:
+        gambling_job()
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
